@@ -3,8 +3,7 @@ var Calculadora = (function (){
     function constructor() {
         let teclas = document.getElementsByClassName('tecla');
         let display = document.getElementById('display');
-        var pila = [];
-        let pila_index = 0;
+
         for (tecla in teclas) {
             teclas[tecla].onmousedown = add_ClickEfect;
             teclas[tecla].onmouseup = remove_ClickEfect;
@@ -12,25 +11,46 @@ var Calculadora = (function (){
 
         function add_ClickEfect(event) {
             event.target.setAttribute("style", "transform:scale(0.95,0.95)");
-            let num = parseInt(event.target.id);
+            let num = parseFloat(event.target.id);
 
             if (/^([0-9])*$/.test(num)) {
-
+                
                 if ((num == 0 && display.innerHTML == 0) || display.innerHTML.length >= 8) {
                     return;
                 }
-                display.innerHTML == '0' ? display.innerHTML = event.target.id : display.innerHTML += event.target.id
+
+                if (sessionStorage.getItem('result') == display.innerHTML || display.innerHTML == '0') {
+                    display.innerHTML = event.target.id
+                }else{
+                    display.innerHTML += event.target.id
+                }
             }else{
+
                 switch (event.target.id) {
                     case 'on':
                         display.innerHTML = '0';
                         break;
-                    case  'sign':
+                    case 'punto':
+                        addPoint();
                         break;
-                    case 'raiz':
+                    case 'sign':
+                        addSing();
                         break;
-                    default:
-                        set_values(event.target.id);
+                    case 'mas':
+                        operation('+');
+                        break;
+                    case 'menos':
+                        operation('-');
+                        break;
+                    case 'por':
+                        operation('*');
+                        break;
+                    case 'dividido':
+                        operation('/');
+                        break;
+                    case 'igual':
+                        result();
+                        break;
                 }
             }
         }
@@ -39,39 +59,48 @@ var Calculadora = (function (){
             event.target.setAttribute("style", "transform:scale(1,1)")
         }
 
-        function set_values(operator) {
-
-            pila[pila_index] = parseInt(display.innerHTML);
-            
-            if (operator == 'igual') {
-                getResult();
+        function addPoint() {
+            if(display.innerHTML.indexOf('.') == -1){
+                display.innerHTML += '.';
             }
-            
-            pila[pila_index+1] = operator;
-
-            display.innerHTML = '';
-            pila_index = pila_index+2;
         }
-        
-        function getResult() {
-            if (pila.length % 2 != 0 && pila.length > 1){
 
-                let total = 0;
+        function addSing() {
 
-                for (value in pila) {
-                    let temp;
-                    let num = pila[value] ;
-
-                    if (/^([0-9])*$/.test(num)) {
-                        if (value == 0){
-                            total = pila[value]
-                        }
-                    }else{
-                        total = total + pila[value+1];
-
-                    }
-                }
+            if(display.innerHTML.indexOf('-') == -1 && display.innerHTML != 0){
+                display.innerHTML = '-'+display.innerHTML;
+            }else if(display.innerHTML.indexOf('-') != -1){
+                display.innerHTML =  display.innerHTML.replace('-', "");
             }
+        }
+        function operation(symbol) {
+            sessionStorage.setItem('number', display.innerHTML);
+            sessionStorage.setItem('operation_symbol', symbol);
+            display.innerHTML = '';
+        }
+        function result() {
+            let number = sessionStorage.getItem('number');
+            let symbol = sessionStorage.getItem('operation_symbol');
+            let result;
+            switch (symbol) {
+                case '+':
+                    console.log(parseFloat(number) , parseFloat(display.innerHTML));
+                    result = parseFloat(number) + parseFloat(display.innerHTML);
+                    break;
+                case '-':
+                    result = parseFloat(number) - parseFloat(display.innerHTML);
+                    break;
+                case '*':
+                    result = parseFloat(number) * parseFloat(display.innerHTML);
+                    break;
+                case '/':
+                    result = parseFloat(number) / parseFloat(display.innerHTML);
+                    break;
+            }
+
+            result = result.toString();
+            display.innerHTML = result >= 8 ? result.substr(0,8) : result;
+            sessionStorage.setItem('result', result);
         }
     }
 
